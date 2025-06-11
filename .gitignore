@@ -1,0 +1,15 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.xlsx
+.env/
+# Ignore Python virtual environment directories
+# Ignore Jupyter Notebook checkpoints
+# Ignore the data directory
+data/
+# Ignore the logs directory
+logs/
