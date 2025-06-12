@@ -29,6 +29,7 @@ def main():
     uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
     if uploaded_file is not None:
         df = pd.read_excel(uploaded_file, sheet_name="MASTER", header=6)
+        # define df_comp and df_mm_bands here, or let user edit as before
     else:
         st.warning("Please upload your Excel file to proceed.")
         st.stop()
