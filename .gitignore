@@ -9,7 +9,5 @@ __pycache__/
 .env/
 # Ignore Python virtual environment directories
 # Ignore Jupyter Notebook checkpoints
-# Ignore the data directory
-data/
 # Ignore the logs directory
 logs/
