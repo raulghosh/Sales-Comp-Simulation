@@ -6,7 +6,7 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load all required data files."""
     try:
         # Load main data
-        file_path = Path(__file__).parent.parent / "data" / "Model 2025 Baseline Simulation.xlsx"
+        file_path = Path(__file__).parent.parent / "data" / "Model 2025 Baseline Simulation Sample.xlsx"
         df = pd.read_excel(file_path, sheet_name="MASTER", header=6)
         
         # Create df_comp

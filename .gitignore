@@ -10,6 +10,6 @@ __pycache__/
 # Ignore Python virtual environment directories
 # Ignore Jupyter Notebook checkpoints
 # Ignore the data directory
-data/
+\data\Model 2025 Baseline Simulation Sample.xlsx
 # Ignore the logs directory
 logs/
