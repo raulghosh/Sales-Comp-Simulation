@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import sys
-import os
 from pathlib import Path
 
 # Add src to path
@@ -24,18 +23,8 @@ def format_comma(x):
 
 def main():
     st.title("Sales Compensation Simulation")
-    
-    # File uploader for Excel file
-    uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
-    if uploaded_file is not None:
-        df = pd.read_excel(uploaded_file, sheet_name="MASTER", header=6)
-        # define df_comp and df_mm_bands here, or let user edit as before
-    else:
-        st.warning("Please upload your Excel file to proceed.")
-        st.stop()
-    
     try:
-        # Load data
+        # Load data from disk
         df, df_comp, df_mm_bands = load_data()
         
         # Store original values for reset
