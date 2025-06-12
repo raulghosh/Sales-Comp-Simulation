@@ -3,8 +3,11 @@ import pandas as pd
 import numpy as np
 import sys
 from pathlib import Path
+from matplotlib import pyplot as plt
+# Ensure matplotlib uses the correct backend for Streamlit
+plt.switch_backend('agg')  # Use 'agg' backend for Streamlit compatibility
 
-# Add src to path
+# Add src to path to import local modules
 src_path = Path(__file__).parent.parent / "src"
 sys.path.append(str(src_path))
 
@@ -152,6 +155,8 @@ def main():
             
             # Plot results
             st.subheader("Commission Projection with Confidence Bands")
+            fig, ax = plt.subplots()
+            ax.scatter([1, 2, 3], [1, 2, 3])
             fig = simulation.plot_projection_with_bands(results, rep_name)
             st.pyplot(fig)
             
