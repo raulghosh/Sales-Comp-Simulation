@@ -5,11 +5,11 @@ A Streamlit app to simulate and visualize sales commission projections.
 ## Setup
 
 ```bash
-pip install -r [requirements.txt](http://_vscodecontentref_/1)
+pip install -r [requirements.txt]
 ```
 ## Run the App
 ```
-streamlit run [app.py](http://_vscodecontentref_/2)
+streamlit run [app.py]
 ```
 
 ---
