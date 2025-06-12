@@ -5,6 +5,7 @@ __pycache__/
 *.pyd
 *.db
 *.sqlite3
+*.xlsx
 .env/
 # Ignore Python virtual environment directories
 # Ignore Jupyter Notebook checkpoints
