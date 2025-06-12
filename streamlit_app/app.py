@@ -25,6 +25,14 @@ def format_comma(x):
 def main():
     st.title("Sales Compensation Simulation")
     
+    # File uploader for Excel file
+    uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
+    if uploaded_file is not None:
+        df = pd.read_excel(uploaded_file, sheet_name="MASTER", header=6)
+    else:
+        st.warning("Please upload your Excel file to proceed.")
+        st.stop()
+    
     try:
         # Load data
         df, df_comp, df_mm_bands = load_data()
@@ -181,6 +189,51 @@ def main():
             dist_fig = simulation.plot_total_commission(results, rep_name)
             st.pyplot(dist_fig)
             
+            # After simulation is run and results are available
+
+            if st.session_state.simulation_results is not None:
+                results = st.session_state.simulation_results
+
+                # Prepare mean summary DataFrame
+                reps = results['Full Name'].unique()
+                years = range(2025, 2032)
+                sales_cols = [f"{year} Sales" for year in years]
+                comm_cols = [f"{year} Total Commission" for year in years]
+
+                summary_rows = []
+                for rep in reps:
+                    rep_data = results[results['Full Name'] == rep]
+                    row = {
+                        "Sales Rep Name": rep,
+                        "Title Description": rep_data['Title Description'].iloc[0],
+                        "2024 Sales": rep_data['2024 Sales'].iloc[0],
+                        "2024 Commission": rep_data['2024 Commission US'].iloc[0],
+                    }
+                    # Add mean simulated sales and commission for each year
+                    for year in years:
+                        row[f"{year} Simulated Sales"] = rep_data[f"{year} Sales"].mean()
+                        row[f"{year} Simulated Commission"] = rep_data[f"{year} Total Commission"].mean()
+                    summary_rows.append(row)
+
+                summary_df = pd.DataFrame(summary_rows)
+
+                # Reorder columns for download
+                ordered_cols = (
+                    ["Sales Rep Name", "Title Description", "2024 Sales"] +
+                    [f"{year} Simulated Sales" for year in years] +
+                    ["2024 Commission"] +
+                    [f"{year} Simulated Commission" for year in years]
+                )
+                summary_df = summary_df[ordered_cols]
+
+                # Download button
+                csv = summary_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Simulated Means as CSV",
+                    data=csv,
+                    file_name="simulated_commissions.csv",
+                    mime="text/csv"
+                )
 
 
     except Exception as e:
