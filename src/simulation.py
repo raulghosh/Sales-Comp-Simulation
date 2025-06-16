@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List, Union, Dict
-from utils import map_to_mm
+from utils import map_to_mm, convert_title_description
 
 class Simulation:
     def __init__(self, df: pd.DataFrame, df_comp: pd.DataFrame, df_mm_bands: pd.DataFrame):
@@ -11,6 +11,7 @@ class Simulation:
             raise TypeError("All inputs must be pandas DataFrames")
             
         self.df = df.copy()
+        self.df['Title Description'] = self.df['Title Description'].apply(convert_title_description)
         self.df_comp = df_comp.copy()
         self.df_mm_bands = df_mm_bands.sort_values(by='Multiplier Bands')
         self.cgp_dist = self.df['CGP%'].dropna().values
@@ -20,10 +21,15 @@ class Simulation:
         if not all(col in df.columns for col in required_cols):
             raise ValueError(f"DataFrame missing required columns: {required_cols}")
 
+        self.cgp_dist_by_segment = {
+            seg: self.df[self.df['Segment'] == seg]['CGP%'].dropna().values
+            for seg in self.df['Segment'].unique()
+        }
+
     def simulate_total_commission(
         self, 
         num_simulations: int = 100,
-        years: range = range(2025, 2032),
+        years: range = range(2025, 2031),
         growth_std: float = 0.005,
         cgp_sample_std: float = None
     ) -> pd.DataFrame:
@@ -59,22 +65,29 @@ class Simulation:
                     sim_df[f'{year} Sales'] = curr_sales
 
                     # 4. Sample CGP% for each rep
-                    sampled_cgp_pct = np.random.choice(self.cgp_dist, size=len(sim_df), replace=True)
-                    sim_df[f'{year} CGP%'] = sampled_cgp_pct
+                    for idx, row in sim_df.iterrows():
+                        seg = row['Segment']
+                        cgp_choices = self.cgp_dist_by_segment.get(seg, self.cgp_dist)
+                        sampled_cgp_pct = np.random.choice(cgp_choices)
+                        sim_df.at[idx, f'{year} CGP%'] = sampled_cgp_pct
 
-                    # 5. Calculate Growth GP$ (assume flat margin %)
+                    # 5. Calculate Growth GP$
                     growth_gp = sampled_cgp_pct * sales_growth
-                    sim_df[f'{year} Growth GP$- asssume flat margin %'] = growth_gp
+                    sim_df[f'{year} Growth GP$- asssume noisy margin %'] = growth_gp
 
                     # 6. Calculate Growth Commission
                     growth_rate = sim_df['Title Description'].apply(
                         lambda title: self.df_comp.loc[title, 'Growth Rate'] if title in self.df_comp.index else 0
                     ).values
+                    
+                    # 7. # For each rep, map CGP% to MM using the bands
+                    sim_df['MM'] = sim_df[f'{year} CGP%'].apply(lambda cgp: map_to_mm(self.df_mm_bands, cgp))
+                    
                     mm = sim_df['MM'].values if 'MM' in sim_df.columns else 1.0  # Use 1.0 if MM not present
                     growth_commission = growth_rate * growth_gp * mm
                     sim_df[f'{year} Growth Commission'] = growth_commission
 
-                    # 7. Calculate Total Commission
+                    # 8. Calculate Total Commission
                     total_commission = prev_commission + growth_commission
                     sim_df[f'{year} Total Commission'] = total_commission
 
@@ -90,7 +103,7 @@ class Simulation:
         except Exception as e:
             raise RuntimeError(f"Simulation failed: {str(e)}")
     
-    def plot_total_commission(self, results, rep_name, years=range(2025, 2032)):
+    def plot_total_commission(self, results, rep_name, years=range(2025, 2031)):
         """Plot total commission for a selected rep across years."""
         import matplotlib.pyplot as plt
         rep_data = results[results['Full Name'] == rep_name]
@@ -101,12 +114,10 @@ class Simulation:
         ax.set_xlabel('Total Commission')
         ax.set_ylabel('Frequency')
         ax.legend()
-        # if return_fig:
-        #     return fig
         plt.show()
 
     def plot_projection_with_bands(self, results: pd.DataFrame, rep_name: str, 
-                             years: range = range(2025, 2032)) -> plt.Figure:
+                             years: range = range(2025, 2031)) -> plt.Figure:
         """
         Plot projection with confidence bands.
         Returns the figure object for Streamlit.
